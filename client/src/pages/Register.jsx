@@ -20,7 +20,6 @@ const Register = () => {
       [name]: value
     }));
 
-    // Clear validation error when user starts typing
     if (errors[name]) {
       setErrors(prev => ({
         ...prev,
@@ -71,7 +70,7 @@ const Register = () => {
 
     try {
       const registerData = {
-        username: formData.username,
+        name: formData.username,
         email: formData.email,
         password: formData.password
       };

@@ -21,7 +21,7 @@ const Cart = () => {
       }
 
       const response = await api.get('/cart');
-      setCartItems(response.data);
+      setCartItems(response.data.cart_items || []);
     } catch (error) {
       console.error('Error fetching cart items:', error);
       if (error.response?.status === 401) {
@@ -37,8 +37,8 @@ const Cart = () => {
 
     setUpdating(true);
     try {
-      await api.put(`/cart/${cartId}`, { quantity: newQuantity });
-      await fetchCartItems(); // Refresh cart items
+      await api.put(`/cart/update/${cartId}`, { quantity: newQuantity });
+      await fetchCartItems();
     } catch (error) {
       console.error('Error updating quantity:', error);
       alert('Error updating quantity');
@@ -50,8 +50,8 @@ const Cart = () => {
   const removeItem = async (cartId) => {
     setUpdating(true);
     try {
-      await api.delete(`/cart/${cartId}`);
-      await fetchCartItems(); // Refresh cart items
+      await api.delete(`/cart/remove/${cartId}`);
+      await fetchCartItems();
     } catch (error) {
       console.error('Error removing item:', error);
       alert('Error removing item');
@@ -84,7 +84,6 @@ const Cart = () => {
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <h1 className="text-3xl font-bold text-gray-900">Shopping Cart</h1>
           <span className="text-gray-600">({getTotalItems()} items)</span>
@@ -105,130 +104,126 @@ const Cart = () => {
             </Link>
           </div>
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Cart Items */}
-            <div className="lg:col-span-2">
-              <div className="bg-white rounded-lg shadow-md">
-                {cartItems.map((item) => (
-                  <div
-                    key={item.id}
-                    className="flex items-center p-6 border-b border-gray-200 last:border-b-0"
-                  >
-                    {/* Product Image */}
-                    <img
-                      src={item.product.image_url || 'https://via.placeholder.com/100x100?text=No+Image'}
-                      alt={item.product.name}
-                      className="w-20 h-20 object-cover rounded-lg mr-4"
-                      onError={(e) => {
-                        e.target.src = 'https://via.placeholder.com/100x100?text=No+Image';
-                      }}
-                    />
+          <>
+             <div className="bg-white rounded-lg shadow-md">
+              {cartItems.map((item) => (
+                <div
+                  key={item.id}
+                  className="flex items-center p-6 border-b border-gray-200 last:border-b-0"
+                >
+               
+                  <img
+                    src={item.product.image_url || 'https://via.placeholder.com/100x100?text=No+Image'}
+                    alt={item.product.name}
+                    className="w-20 h-20 object-cover rounded-lg mr-4"
+                    onError={(e) => {
+                      e.target.src = 'https://via.placeholder.com/100x100?text=No+Image';
+                    }}
+                  />
 
-                    {/* Product Info */}
-                    <div className="flex-1">
-                      <Link
-                        to={`/products/${item.product.id}`}
-                        className="text-lg font-semibold text-gray-900 hover:text-blue-600"
-                      >
-                        {item.product.name}
-                      </Link>
-                      <p className="text-gray-600 text-sm mt-1">
-                        ${item.product.price} each
-                      </p>
-                    </div>
-
-                    {/* Quantity Controls */}
-                    <div className="flex items-center space-x-2 mx-4">
-                      <button
-                        onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                        disabled={updating}
-                        className="w-8 h-8 rounded-full bg-gray-200 hover:bg-gray-300 flex items-center justify-center disabled:opacity-50"
-                      >
-                        -
-                      </button>
-                      <span className="w-12 text-center">{item.quantity}</span>
-                      <button
-                        onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                        disabled={updating}
-                        className="w-8 h-8 rounded-full bg-gray-200 hover:bg-gray-300 flex items-center justify-center disabled:opacity-50"
-                      >
-                        +
-                      </button>
-                    </div>
-
-                    {/* Item Total */}
-                    <span className="text-lg font-semibold text-gray-900 mx-4">
-                      ${(item.product.price * item.quantity).toFixed(2)}
-                    </span>
-
-                    {/* Remove Button */}
-                    <button
-                      onClick={() => removeItem(item.id)}
-                      disabled={updating}
-                      className="text-red-600 hover:text-red-800 disabled:opacity-50"
+             
+                  <div className="flex-1">
+                    <Link
+                      to={`/products/${item.product.id}`}
+                      className="text-lg font-semibold text-gray-900 hover:text-blue-600"
                     >
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.14A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.86L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                      </svg>
+                      {item.product.name}
+                    </Link>
+                    <p className="text-gray-600 text-sm mt-1">
+                      ₹{item.product.price} each
+                    </p>
+                  </div>
+
+                
+                  <div className="flex items-center space-x-2 mx-4">
+                    <button
+                      onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                      disabled={updating}
+                      className="w-8 h-8 rounded-full bg-gray-200 hover:bg-gray-300 flex items-center justify-center disabled:opacity-50"
+                    >
+                      -
+                    </button>
+                    <span className="w-12 text-center">{item.quantity}</span>
+                    <button
+                      onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                      disabled={updating}
+                      className="w-8 h-8 rounded-full bg-gray-200 hover:bg-gray-300 flex items-center justify-center disabled:opacity-50"
+                    >
+                      +
                     </button>
                   </div>
-                ))}
-              </div>
-            </div>
 
-            {/* Summary */}
-            <div className="lg:col-span-1">
-              <div className="bg-white rounded-lg shadow-md p-6 sticky top-4">
-                <h2 className="text-xl font-semibold text-gray-900 mb-4">Order Summary</h2>
+                 
+                  <span className="text-lg font-semibold text-gray-900 mx-4">
+                    ₹{(item.product.price * item.quantity).toFixed(2)}
+                  </span>
 
-                <div className="space-y-3 mb-6">
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Items ({getTotalItems()})</span>
-                    <span className="font-semibold text-gray-900">
-                      ${getTotalPrice().toFixed(2)}
-                    </span>
-                  </div>
-
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Shipping</span>
-                    <span className="font-semibold text-gray-900">
-                      {getTotalPrice() > 50 ? 'Free' : '$5.99'}
-                    </span>
-                  </div>
-
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Tax</span>
-                    <span className="font-semibold text-gray-900">
-                      ${(getTotalPrice() * 0.08).toFixed(2)}
-                    </span>
-                  </div>
+                 
+                  <button
+                    onClick={() => removeItem(item.id)}
+                    disabled={updating}
+                    className="text-red-600 hover:text-red-800 disabled:opacity-50"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.14A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.86L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                  </button>
                 </div>
+              ))}
+            </div>
+            <div className="bg-white rounded-lg shadow-md p-6 mb-8">
+              <h2 className="text-xl font-semibold text-gray-900 mb-4">Order Summary</h2>
 
-                <hr className="my-6" />
-
-                <div className="flex justify-between items-center mb-6">
-                  <span className="text-2xl font-bold">Total</span>
-                  <span className="text-2xl font-bold text-green-600">
-                    ${(getTotalPrice() + (getTotalPrice() > 50 ? 0 : 5.99) + (getTotalPrice() * 0.08)).toFixed(2)}
+              <div className="space-y-3 mb-6">
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Items ({getTotalItems()})</span>
+                  <span className="font-semibold text-gray-900">
+                    ₹{getTotalPrice().toFixed(2)}
                   </span>
                 </div>
 
-                <button
-                  onClick={() => navigate('/checkout')}
-                  className="w-full bg-blue-600 text-white py-3 px-6 rounded-lg hover:bg-blue-700 transition-colors font-semibold"
-                >
-                  Proceed to Checkout
-                </button>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Shipping</span>
+                  <span className="font-semibold text-gray-900">
+                    {getTotalPrice() > 50 ? 'Free' : '₹5.99'}
+                  </span>
+                </div>
 
-                <Link
-                  to="/products"
-                  className="w-full block text-center mt-4 text-blue-600 hover:text-blue-800"
-                >
-                  Continue Shopping
-                </Link>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Tax</span>
+                  <span className="font-semibold text-gray-900">
+                    ₹{(getTotalPrice() * 0.08).toFixed(2)}
+                  </span>
+                </div>
               </div>
+
+              <hr className="my-6" />
+
+              <div className="flex justify-between items-center mb-6">
+                <span className="text-2xl font-bold">Total</span>
+                <span className="text-2xl font-bold text-green-600">
+                  ₹{(getTotalPrice() + (getTotalPrice() > 50 ? 0 : 5.99) + (getTotalPrice() * 0.08)).toFixed(2)}
+                </span>
+              </div>
+
+              <button
+                onClick={() => navigate('/checkout')}
+                className="w-full bg-blue-600 text-white py-3 px-6 rounded-lg hover:bg-blue-700 transition-colors font-semibold"
+              >
+                Proceed to Checkout
+              </button>
+
+              <Link
+                to="/products"
+                className="w-full block text-center mt-4 text-blue-600 hover:text-blue-800"
+              >
+                Continue Shopping
+              </Link>
             </div>
-          </div>
+
+          
+           
+          </>
         )}
       </div>
     </div>

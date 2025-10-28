@@ -2,13 +2,14 @@ from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from ...models import db, ShoppingCart, CartItem, Product
 
+
 cart_bp = Blueprint("cart", __name__)
 
 
-@cart_bp.route("/", methods=["GET"])
+@cart_bp.route("/", methods=["GET", "OPTIONS"])
 @jwt_required()
 def get_cart():
-    current_user_id = get_jwt_identity()
+    current_user_id = int(get_jwt_identity())
     cart = ShoppingCart.query.filter_by(
         user_id=current_user_id, status="active"
     ).first()
@@ -24,7 +25,7 @@ def get_cart():
             "product": {
                 "name": ci.product.name,
                 "price": ci.product.price,
-                "image": ci.product.image,
+                "image_url": ci.product.image,
             },
         }
         for ci in cart_items
@@ -32,10 +33,10 @@ def get_cart():
     return jsonify({"cart_items": item_list}), 200
 
 
-@cart_bp.route("/add", methods=["POST"])
+@cart_bp.route("/add", methods=["POST", "OPTIONS"])
 @jwt_required()
 def add_to_cart():
-    current_user_id = get_jwt_identity()
+    current_user_id = int(get_jwt_identity())
     data = request.get_json()
     product_id = data.get("product_id")
     quantity = data.get("quantity", 1)
@@ -66,10 +67,10 @@ def add_to_cart():
     return jsonify({"message": "Added to cart"}), 200
 
 
-@cart_bp.route("/update/<int:item_id>", methods=["PUT"])
+@cart_bp.route("/update/<int:item_id>", methods=["PUT", "OPTIONS"])
 @jwt_required()
 def update_cart_item(item_id):
-    current_user_id = get_jwt_identity()
+    current_user_id = int(get_jwt_identity())
     data = request.get_json()
     quantity = data.get("quantity")
     if quantity is None or quantity <= 0:
@@ -83,10 +84,10 @@ def update_cart_item(item_id):
     return jsonify({"message": "Cart item updated"}), 200
 
 
-@cart_bp.route("/remove/<int:item_id>", methods=["DELETE"])
+@cart_bp.route("/remove/<int:item_id>", methods=["DELETE", "OPTIONS"])
 @jwt_required()
 def remove_cart_item(item_id):
-    current_user_id = get_jwt_identity()
+    current_user_id = int(get_jwt_identity())
     cart_item = CartItem.query.get_or_404(item_id)
     cart = cart_item.cart
     if cart.user_id != current_user_id:

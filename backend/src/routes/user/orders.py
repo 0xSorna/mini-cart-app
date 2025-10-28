@@ -6,10 +6,13 @@ from ...models import db, ShoppingCart, Order, OrderItem
 order_bp = Blueprint("order", __name__)
 
 
+# ORDER MANAGEMENT ENDPOINTS (Cash on Delivery Only)
+
+
 @order_bp.route("/place", methods=["POST"])
 @jwt_required()
 def place_order():
-    current_user_id = get_jwt_identity()
+    current_user_id = int(get_jwt_identity())
     data = request.get_json()
     shipping_address = data.get("shipping_address")
     billing_address = data.get("billing_address", shipping_address)
@@ -45,7 +48,7 @@ def place_order():
 @order_bp.route("/", methods=["GET"])
 @jwt_required()
 def get_orders():
-    current_user_id = get_jwt_identity()
+    current_user_id = int(get_jwt_identity())
     orders = (
         Order.query.filter_by(user_id=current_user_id)
         .order_by(desc(Order.created_at))
@@ -68,7 +71,7 @@ def get_orders():
 @order_bp.route("/<int:order_id>", methods=["GET"])
 @jwt_required()
 def get_order(order_id):
-    current_user_id = get_jwt_identity()
+    current_user_id = int(get_jwt_identity())
     order = Order.query.get_or_404(order_id)
     if order.user_id != current_user_id:
         return jsonify({"message": "Unauthorized"}), 403

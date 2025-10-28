@@ -11,12 +11,6 @@ const Checkout = () => {
   const [formData, setFormData] = useState({
     shipping_address: '',
     billing_address: '',
-    payment_method: 'credit_card',
-    card_number: '',
-    expiry_month: '',
-    expiry_year: '',
-    cvv: '',
-    card_holder_name: ''
   });
 
   const [useSameAddress, setUseSameAddress] = useState(true);
@@ -25,7 +19,6 @@ const Checkout = () => {
   useEffect(() => {
     fetchCartItems();
 
-    // Pre-fill billing address if using same address
     if (useSameAddress && formData.shipping_address) {
       setFormData(prev => ({
         ...prev,
@@ -43,7 +36,7 @@ const Checkout = () => {
       }
 
       const response = await api.get('/cart');
-      setCartItems(response.data);
+      setCartItems(response.data.cart_items || []);
     } catch (error) {
       console.error('Error fetching cart items:', error);
       if (error.response?.status === 401) {
@@ -99,24 +92,6 @@ const Checkout = () => {
       newErrors.billing_address = 'Billing address is required';
     }
 
-    if (formData.payment_method === 'credit_card') {
-      if (!formData.card_number.trim()) {
-        newErrors.card_number = 'Card number is required';
-      }
-      if (!formData.expiry_month) {
-        newErrors.expiry_month = 'Expiry month is required';
-      }
-      if (!formData.expiry_year) {
-        newErrors.expiry_year = 'Expiry year is required';
-      }
-      if (!formData.cvv.trim()) {
-        newErrors.cvv = 'CVV is required';
-      }
-      if (!formData.card_holder_name.trim()) {
-        newErrors.card_holder_name = 'Card holder name is required';
-      }
-    }
-
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -134,22 +109,12 @@ const Checkout = () => {
       const orderData = {
         shipping_address: formData.shipping_address,
         billing_address: formData.billing_address,
-        payment_info: {
-          method: formData.payment_method,
-          ...(formData.payment_method === 'credit_card' && {
-            card_number: formData.card_number,
-            expiry_month: formData.expiry_month,
-            expiry_year: formData.expiry_year,
-            cvv: formData.cvv,
-            card_holder_name: formData.card_holder_name
-          })
-        }
       };
 
-      await api.post('/orders', orderData);
+      await api.post('/orders/place', orderData);
 
       // Clear cart and redirect to success page
-      alert('Order placed successfully!');
+      alert('Order placed successfully! Cash on Delivery.');
       navigate('/');
     } catch (error) {
       console.error('Error placing order:', error);
@@ -229,11 +194,11 @@ const Checkout = () => {
                   name="shipping_address"
                   value={formData.shipping_address}
                   onChange={handleInputChange}
-                  rows={3}
+                  rows={4}
                   className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
                     errors.shipping_address ? 'border-red-500' : 'border-gray-300'
                   }`}
-                  placeholder="Enter your full shipping address"
+                  placeholder="Enter your full shipping address including street, city, state, pincode"
                 />
                 {errors.shipping_address && (
                   <p className="text-red-500 text-sm mt-1">{errors.shipping_address}</p>
@@ -252,7 +217,7 @@ const Checkout = () => {
                   className="mr-2"
                 />
                 <label htmlFor="same_address" className="text-sm font-medium text-gray-700">
-                  Billing address same as shipping
+                  Billing address same as shipping address
                 </label>
               </div>
 
@@ -267,11 +232,11 @@ const Checkout = () => {
                       name="billing_address"
                       value={formData.billing_address}
                       onChange={handleInputChange}
-                      rows={3}
+                      rows={4}
                       className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
                         errors.billing_address ? 'border-red-500' : 'border-gray-300'
                       }`}
-                      placeholder="Enter your full billing address"
+                      placeholder="Enter your full billing address including street, city, state, pincode"
                     />
                     {errors.billing_address && (
                       <p className="text-red-500 text-sm mt-1">{errors.billing_address}</p>
@@ -281,131 +246,20 @@ const Checkout = () => {
               )}
             </div>
 
-            {/* Payment Information */}
+            {/* Payment Information - Cash on Delivery */}
             <div className="bg-white rounded-lg shadow-md p-6">
-              <h2 className="text-xl font-semibold mb-4">Payment Information</h2>
-
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Payment Method
-                </label>
-                <select
-                  name="payment_method"
-                  value={formData.payment_method}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                >
-                  <option value="credit_card">Credit Card</option>
-                  <option value="paypal">PayPal</option>
-                  <option value="bank_transfer">Bank Transfer</option>
-                </select>
-              </div>
-
-              {formData.payment_method === 'credit_card' && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Card Number
-                    </label>
-                    <input
-                      type="text"
-                      name="card_number"
-                      value={formData.card_number}
-                      onChange={handleInputChange}
-                      className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                        errors.card_number ? 'border-red-500' : 'border-gray-300'
-                      }`}
-                      placeholder="1234 5678 9012 3456"
-                    />
-                    {errors.card_number && (
-                      <p className="text-red-500 text-sm mt-1">{errors.card_number}</p>
-                    )}
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Card Holder Name
-                    </label>
-                    <input
-                      type="text"
-                      name="card_holder_name"
-                      value={formData.card_holder_name}
-                      onChange={handleInputChange}
-                      className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                        errors.card_holder_name ? 'border-red-500' : 'border-gray-300'
-                      }`}
-                      placeholder="John Doe"
-                    />
-                    {errors.card_holder_name && (
-                      <p className="text-red-500 text-sm mt-1">{errors.card_holder_name}</p>
-                    )}
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Expiry Month
-                    </label>
-                    <select
-                      name="expiry_month"
-                      value={formData.expiry_month}
-                      onChange={handleInputChange}
-                      className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                        errors.expiry_month ? 'border-red-500' : 'border-gray-300'
-                      }`}
-                    >
-                      <option value="">Month</option>
-                      {Array.from({ length: 12 }, (_, i) => i + 1).map(month => (
-                        <option key={month} value={month}>{month.toString().padStart(2, '0')}</option>
-                      ))}
-                    </select>
-                    {errors.expiry_month && (
-                      <p className="text-red-500 text-sm mt-1">{errors.expiry_month}</p>
-                    )}
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Expiry Year
-                    </label>
-                    <select
-                      name="expiry_year"
-                      value={formData.expiry_year}
-                      onChange={handleInputChange}
-                      className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                        errors.expiry_year ? 'border-red-500' : 'border-gray-300'
-                      }`}
-                    >
-                      <option value="">Year</option>
-                      {Array.from({ length: 10 }, (_, i) => new Date().getFullYear() + i).map(year => (
-                        <option key={year} value={year}>{year}</option>
-                      ))}
-                    </select>
-                    {errors.expiry_year && (
-                      <p className="text-red-500 text-sm mt-1">{errors.expiry_year}</p>
-                    )}
-                  </div>
-
-                  <div className="md:col-span-2">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      CVV
-                    </label>
-                    <input
-                      type="text"
-                      name="cvv"
-                      value={formData.cvv}
-                      onChange={handleInputChange}
-                      className={`w-24 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                        errors.cvv ? 'border-red-500' : 'border-gray-300'
-                      }`}
-                      placeholder="123"
-                      maxLength={4}
-                    />
-                    {errors.cvv && (
-                      <p className="text-red-500 text-sm mt-1">{errors.cvv}</p>
-                    )}
-                  </div>
+              <h2 className="text-xl font-semibold mb-4">Payment Method</h2>
+              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                <div className="flex items-center">
+                  <svg className="w-5 h-5 text-green-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                  </svg>
+                  <span className="text-green-800 font-medium">Cash on Delivery (COD)</span>
                 </div>
-              )}
+                <p className="text-green-700 text-sm mt-1">
+                  Pay in cash when your order is delivered to your doorstep. No advance payment required.
+                </p>
+              </div>
             </div>
           </div>
 
@@ -422,7 +276,7 @@ const Checkout = () => {
                       {item.product.name} x{item.quantity}
                     </span>
                     <span className="font-semibold">
-                      ${(item.product.price * item.quantity).toFixed(2)}
+                      ₹{(item.product.price * item.quantity).toFixed(2)}
                     </span>
                   </div>
                 ))}
@@ -433,15 +287,15 @@ const Checkout = () => {
               <div className="space-y-2 mb-4">
                 <div className="flex justify-between">
                   <span>Subtotal</span>
-                  <span>${getTotalPrice().toFixed(2)}</span>
+                  <span>₹{getTotalPrice().toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Shipping</span>
-                  <span>{getShippingCost() === 0 ? 'Free' : `$${getShippingCost().toFixed(2)}`}</span>
+                  <span>{getShippingCost() === 0 ? 'Free' : `₹${getShippingCost().toFixed(2)}`}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Tax</span>
-                  <span>${getTax().toFixed(2)}</span>
+                  <span>₹{getTax().toFixed(2)}</span>
                 </div>
               </div>
 
@@ -449,7 +303,7 @@ const Checkout = () => {
 
               <div className="flex justify-between text-xl font-bold mb-6">
                 <span>Total</span>
-                <span className="text-green-600">${getTotal().toFixed(2)}</span>
+                <span className="text-green-600">₹{getTotal().toFixed(2)}</span>
               </div>
 
               <button
@@ -457,8 +311,18 @@ const Checkout = () => {
                 disabled={submitting}
                 className="w-full bg-blue-600 text-white py-3 px-6 rounded-lg hover:bg-blue-700 transition-colors font-semibold disabled:opacity-50"
               >
-                {submitting ? 'Processing...' : 'Complete Order'}
+                {submitting ? 'Placing Order...' : 'Place Order (Cash on Delivery)'}
               </button>
+
+              <div className="mt-4 text-center">
+                <button
+                  type="button"
+                  onClick={() => navigate('/cart')}
+                  className="text-blue-600 hover:text-blue-800 text-sm"
+                >
+                  ← Back to Cart
+                </button>
+              </div>
             </div>
           </div>
         </form>

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import api from '../utils/api';
+import { publicApi } from '../utils/api';
 import ProductCard from '../components/ProductCard';
 import Footer from '../components/Footer';
 
@@ -14,8 +14,7 @@ const Home = () => {
 
   const fetchFeaturedProducts = async () => {
     try {
-      const response = await api.get('/products');
-      // Get first 6 products as featured
+      const response = await publicApi.get('/products');
       setFeaturedProducts(response.data.products.slice(0, 6));
     } catch (error) {
       console.error('Error fetching products:', error);
@@ -26,12 +25,10 @@ const Home = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Hero Section - Full Width */}
       <section className="bg-blue-600 text-white">
         <div className="w-full">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-              {/* Hero Content */}
               <div>
                 <h1 className="text-5xl md:text-7xl font-black mb-6">
                   Discover

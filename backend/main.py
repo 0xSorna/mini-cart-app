@@ -1,5 +1,5 @@
 import os
-from flask import Flask
+from flask import Flask, jsonify, request
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager
 from src.models import User, db
@@ -20,12 +20,51 @@ app.config["SQLALCHEMY_DATABASE_URI"] = (
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config["JWT_SECRET_KEY"] = "super-secret-key"
 app.config["JWT_TOKEN_LOCATION"] = ["headers"]
-app.config["JWT_ACCESS_TOKEN_EXPIRE"] = False
 
-CORS(app, origins=["http://localhost:5173"], supports_credentials=True)
+CORS(
+    app,
+    origins=["http://localhost:5173"],
+    methods=["GET", "HEAD", "POST", "PUT", "DELETE", "OPTIONS"],
+    supports_credentials=True,
+    allow_headers=["Content-Type", "Authorization", "X-Login-Request"],
+)
+
+
+# Handle OPTIONS requests before JWT checks
+@app.before_request
+def handle_preflight():
+    if request.method == "OPTIONS":
+        response = jsonify({"status": "ok"})
+        response.headers.add("Access-Control-Allow-Origin", "http://localhost:5173")
+        response.headers.add(
+            "Access-Control-Allow-Headers", "Content-Type,Authorization,X-Login-Request"
+        )
+        response.headers.add(
+            "Access-Control-Allow-Methods", "GET,HEAD,POST,PUT,DELETE,OPTIONS"
+        )
+        response.headers.add("Access-Control-Allow-Credentials", "true")
+        return response, 200
 
 
 jwt = JWTManager(app)
+
+
+@jwt.unauthorized_loader
+def unauthorized_response(callback):
+    return (
+        jsonify({"error": "Unauthorized", "message": "Missing or invalid token"}),
+        401,
+    )
+
+
+@jwt.invalid_token_loader
+def invalid_token_response(callback):
+    return (
+        jsonify({"error": "Invalid token", "message": "The JWT token is invalid"}),
+        401,
+    )
+
+
 db.init_app(app)
 
 with app.app_context():

@@ -18,7 +18,6 @@ const Login = () => {
       [name]: value
     }));
 
-    // Clear validation error when user starts typing
     if (errors[name]) {
       setErrors(prev => ({
         ...prev,
@@ -54,17 +53,19 @@ const Login = () => {
     setLoading(true);
 
     try {
-      const response = await api.post('/auth/login', formData);
+      const response = await api.post('/auth/login', formData, {
+        headers: { 'X-Login-Request': 'true' }
+      });
 
-      // Store the token
       localStorage.setItem('access_token', response.data.access_token);
 
-      // Redirect to home page
       navigate('/');
     } catch (error) {
       console.error('Login error:', error);
 
-      if (error.response?.status === 401) {
+      if (error.response?.data?.message) {
+        setErrors({ general: error.response.data.message });
+      } else if (error.response?.status === 401) {
         setErrors({ general: 'Invalid email or password' });
       } else {
         setErrors({ general: 'An error occurred. Please try again.' });

@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import api from '../utils/api';
+import { publicApi } from '../utils/api';
 import ProductCard from '../components/ProductCard';
-import Footer from '../components/Footer';
 
 const Category = () => {
   const { categoryId } = useParams();
@@ -17,14 +16,16 @@ const Category = () => {
   const fetchCategoryData = async () => {
     try {
       const [categoryResponse, productsResponse] = await Promise.all([
-        api.get(`/categories/${categoryId}`),
-        api.get(`/products?category_id=${categoryId}`)
+        publicApi.get(`/categories/${categoryId}`),
+        publicApi.get(`/products?category_id=${categoryId}`)
       ]);
 
       setCategory(categoryResponse.data);
-      setProducts(productsResponse.data);
+      setProducts(productsResponse.data.products);
     } catch (error) {
       console.error('Error fetching category data:', error);
+      setCategory(null);
+      setProducts([]);
     } finally {
       setLoading(false);
     }
@@ -71,7 +72,7 @@ const Category = () => {
 
         {/* Products Grid */}
         {products.length === 0 ? (
-          <div className="text-center py-12">
+          <div className="text-center py-12 mb-16">
             <svg className="mx-auto h-24 w-24 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
             </svg>
@@ -79,14 +80,13 @@ const Category = () => {
             <p className="text-gray-600">This category doesn't have any products yet.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-16">
             {products.map((product) => (
               <ProductCard key={product.id} product={product} />
             ))}
           </div>
         )}
       </div>
-      <Footer />
     </div>
   );
 };

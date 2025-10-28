@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import api from '../utils/api';
+import { publicApi } from '../utils/api';
 import ProductCard from '../components/ProductCard';
 
 const Products = () => {
@@ -21,10 +21,11 @@ const Products = () => {
 
   const fetchProducts = async () => {
     try {
-      const response = await api.get('/products');
-      setProducts(response.data);
+      const response = await publicApi.get('/products');
+      setProducts(response.data.products);
     } catch (error) {
       console.error('Error fetching products:', error);
+      setProducts([]); // Set empty array on error
     } finally {
       setLoading(false);
     }
@@ -32,10 +33,11 @@ const Products = () => {
 
   const fetchCategories = async () => {
     try {
-      const response = await api.get('/categories');
-      setCategories(response.data);
+      const response = await publicApi.get('/categories');
+      setCategories(response.data.categories);
     } catch (error) {
       console.error('Error fetching categories:', error);
+      setCategories([]); // Set empty array on error
     }
   };
 
@@ -72,16 +74,16 @@ const Products = () => {
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
+   
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-gray-900 mb-4">All Products</h1>
           <p className="text-lg text-gray-600">Discover our complete collection of quality products</p>
         </div>
 
-        {/* Filters */}
+    
         <div className="bg-white p-6 rounded-lg shadow-md mb-8">
           <div className="flex flex-col md:flex-row gap-4">
-            {/* Search */}
+     
             <div className="flex-1">
               <input
                 type="text"
