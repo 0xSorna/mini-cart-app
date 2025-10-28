@@ -9,11 +9,8 @@ from src.routes import (
     cart_bp,
     order_bp,
 )
-from flask_openapi3 import Info, Tag
-from flask_openapi3 import OpenAPI
 
-info = Info(title="Ecommerce API", version="1.0.0")
-app = OpenAPI(__name__, info=info)
+app = Flask(__name__)
 
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///ecom.db"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
