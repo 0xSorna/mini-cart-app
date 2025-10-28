@@ -1,0 +1,27 @@
+# Justfile for Ecommerce Backend
+
+# Install dependencies
+install:
+    pip install -r requirements.txt
+
+# Run the Flask development server
+run:
+    python main.py
+
+# Run with auto-reload (requires flask run command)
+dev:
+    FLASK_APP=main.py FLASK_ENV=development flask run
+
+# Freeze current dependencies to requirements.txt
+freeze:
+    pip freeze > requirements.txt
+
+# Create and run migrations (if using Flask-Migrate)
+# init-db:
+#     flask db init
+
+# migrate-db:
+#     flask db migrate -m "migration message"
+
+# upgrade-db:
+#     flask db upgrade
