@@ -23,19 +23,33 @@ app.config["JWT_TOKEN_LOCATION"] = ["headers"]
 
 CORS(
     app,
-    origins=["http://localhost:5173"],
+    origins=[
+        "http://localhost:3000",
+        "http://localhost:5173",
+        "http://localhost:5000",
+        "https://mini-cart-app.vercel.app",
+        "https://mini-cart-app.onrender.com",
+    ],
     methods=["GET", "HEAD", "POST", "PUT", "DELETE", "OPTIONS"],
     supports_credentials=True,
     allow_headers=["Content-Type", "Authorization", "X-Login-Request"],
 )
 
 
-# Handle OPTIONS requests before JWT checks
 @app.before_request
 def handle_preflight():
     if request.method == "OPTIONS":
         response = jsonify({"status": "ok"})
-        response.headers.add("Access-Control-Allow-Origin", "http://localhost:5173")
+        origin = request.headers.get("Origin", "")
+        allowed_origins = [
+            "http://localhost:3000",
+            "http://localhost:5173",
+            "http://localhost:5000",
+            "https://mini-cart-app.vercel.app",
+            "https://mini-cart-app.onrender.com",
+        ]
+        if origin in allowed_origins:
+            response.headers.add("Access-Control-Allow-Origin", origin)
         response.headers.add(
             "Access-Control-Allow-Headers", "Content-Type,Authorization,X-Login-Request"
         )
