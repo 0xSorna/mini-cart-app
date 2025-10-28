@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 
 const ProductCard = ({ product }) => {
-  const imageUrl = product.image_url || 'https://via.placeholder.com/300x200?text=No+Image';
+  const imageUrl = product.image || 'https://via.placeholder.com/300x200?text=No+Image';
 
   return (
     <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300">

@@ -9,9 +9,19 @@ def get_products():
     page = request.args.get("page", 1, type=int)
     per_page = request.args.get("per_page", 10, type=int)
     category_id = request.args.get("category_id", type=int)
+    search = request.args.get("search", type=str)
+
     query = Product.query
+
     if category_id:
         query = query.filter_by(category_id=category_id)
+
+    if search:
+        search_term = f"%{search}%"
+        query = query.filter(
+            (Product.name.ilike(search_term)) | (Product.title.ilike(search_term))
+        )
+
     products = query.paginate(page=page, per_page=per_page, error_out=False)
     product_list = [
         {

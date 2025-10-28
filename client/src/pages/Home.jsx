@@ -16,7 +16,7 @@ const Home = () => {
     try {
       const response = await api.get('/products');
       // Get first 6 products as featured
-      setFeaturedProducts(response.data.slice(0, 6));
+      setFeaturedProducts(response.data.products.slice(0, 6));
     } catch (error) {
       console.error('Error fetching products:', error);
     } finally {

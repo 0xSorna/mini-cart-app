@@ -1,4 +1,6 @@
+import os
 from flask import Flask
+from flask_cors import CORS
 from flask_jwt_extended import JWTManager
 from src.models import User, db
 from src.routes import (
@@ -12,9 +14,16 @@ from src.routes import (
 
 app = Flask(__name__)
 
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///ecom.db"
+app.config["SQLALCHEMY_DATABASE_URI"] = (
+    f"sqlite:///{os.path.abspath('instance/ecom.db')}"
+)
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config["JWT_SECRET_KEY"] = "super-secret-key"
+app.config["JWT_TOKEN_LOCATION"] = ["headers"]
+app.config["JWT_ACCESS_TOKEN_EXPIRE"] = False
+
+CORS(app, origins=["http://localhost:5173"], supports_credentials=True)
+
 
 jwt = JWTManager(app)
 db.init_app(app)

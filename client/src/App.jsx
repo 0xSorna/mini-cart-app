@@ -14,6 +14,11 @@ import Cart from './pages/Cart';
 import Checkout from './pages/Checkout';
 import AdminLogin from './pages/AdminLogin';
 import AdminDashboard from './pages/AdminDashboard';
+import AdminProducts from './pages/AdminProducts';
+import AdminAddProduct from './pages/AdminAddProduct';
+import AdminCategories from './pages/AdminCategories';
+import AdminAddCategory from './pages/AdminAddCategory';
+import AdminEditCategory from './pages/AdminEditCategory';
 import Footer from './components/Footer';
 
 function App() {
@@ -83,6 +88,11 @@ function App() {
 
         <Route path="/admin/login" element={<AdminLogin />} />
         <Route path="/admin" element={<AdminDashboard />} />
+        <Route path="/admin/products" element={<AdminProducts />} />
+        <Route path="/admin/products/add" element={<AdminAddProduct />} />
+        <Route path="/admin/categories" element={<AdminCategories />} />
+        <Route path="/admin/categories/add" element={<AdminAddCategory />} />
+        <Route path="/admin/categories/:categoryId/edit" element={<AdminEditCategory />} />
       </Routes>
     </div>
   );
